@@ -1,0 +1,1 @@
+boazburnett@raspberrypi:~ $ ffmpeg -f v4l2 -video_size 1280x720 -thread_queue_size 1024 -i /dev/video0 -f alsa -thread_queue_size 1024 -itsoffset 1.0 -i hw:2,0 -preset ultrafast -r 30 -vf "transpose=1,transpose=1" output.mkv
