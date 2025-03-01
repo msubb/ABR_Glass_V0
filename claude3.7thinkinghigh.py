@@ -286,6 +286,10 @@ def save_buffer():
 
         # Now apply A/V sync adjustment and convert to MP4 (iPhone compatible)
         print("Applying 0.3s audio delay and converting to MP4 for mobile compatibility...")
+
+        # Start timer for conversion
+        conversion_start = time.time()
+
         sync_command = [
             "ffmpeg",
             "-i", temp_combined,
@@ -294,18 +298,28 @@ def save_buffer():
             "-map", "0:v",
             "-map", "1:a",
             "-c:v", "libx264",    # Use H.264 video codec
-            "-preset", "ultrafast",   # This speeds up encoding
+            "-preset", "ultrafast",   # This speeds up encoding but increases file size, and reduces quality
             "-c:a", "aac",        # Use AAC audio codec
             "-b:a", "128k",       # Audio bitrate
             "-movflags", "+faststart",  # Optimize for web streaming
             output_file
         ]
-        sync_process = subprocess.Popen(sync_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        sync_process = subprocess.Popen(
+            sync_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
         stdout, stderr = sync_process.communicate()
+        conversion_time = time.time() - conversion_start  # Conversion duration in seconds
 
         if sync_process.returncode != 0:
             print(f"Error applying A/V sync and converting to MP4: {stderr.decode()}")
             return
+
+        # Get the final file size in MB
+        file_size_bytes = os.path.getsize(output_file)
+        file_size_mb = file_size_bytes / (1024 * 1024)
+
+        print(f"Conversion Time: {conversion_time:.2f} seconds")
+        print(f"Final File Size: {file_size_mb:.2f} MB")
 
         # Clean up
         os.remove(concat_file)
